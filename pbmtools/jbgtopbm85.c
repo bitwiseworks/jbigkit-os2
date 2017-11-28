@@ -9,6 +9,9 @@
 #include <ctype.h>
 #include <limits.h>
 #include "jbig85.h"
+#ifdef __OS2__
+#include <fcntl.h>
+#endif
 
 char *progname;                  /* global pointer to argv[0] */
 unsigned long y_0;
@@ -131,6 +134,13 @@ int main (int argc, char **argv)
     }
   } else
     fnout = "<stdout>";
+
+#ifdef __OS2__
+  if (fin == stdin)
+    setmode(fileno(stdin), O_BINARY);
+  if (fout == stdout)
+    setmode(fileno(stdout), O_BINARY);
+#endif
 
   /* send input file to decoder */
   jbg85_dec_init(&s, outbuf, outbuflen, line_out, fout);

@@ -9,7 +9,9 @@
 #include <ctype.h>
 #include <string.h>
 #include "jbig.h"
-
+#ifdef __OS2__
+#include <fcntl.h>
+#endif
 
 char *progname;                  /* global pointer to argv[0] */
 unsigned long total_length = 0;  /* used for determining output file length */
@@ -255,6 +257,13 @@ int main (int argc, char **argv)
     }
   } else
     fnout = "<stdout>";
+
+#ifdef __OS2__
+  if (fin == stdin)
+    setmode(fileno(stdin), O_BINARY);
+  if (fout == stdout)
+    setmode(fileno(stdout), O_BINARY);
+#endif
 
   /* read PBM header */
   while ((c = getc(fin)) != EOF && (isspace(c) || c == '#'))
