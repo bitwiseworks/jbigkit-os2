@@ -4,7 +4,9 @@
 CC = gcc
 
 # Options for the compiler
-CFLAGS = -g -O -W -Wall -Wno-unused-result -ansi -pedantic # --coverage
+CFLAGS = ${RPM_OPT_FLAGS} -W -Wall -Wno-unused-result -ansi -pedantic # --coverage
+LDFLAGS = -Zhigh-mem -Zomf -Zargs-wild -Zargs-resp -lcx
+EXEEXT = .exe
 CPPFLAGS = -I../libjbig 
 
 .SUFFIXES: .1 .5 .txt $(SUFFIXES)
@@ -15,16 +17,16 @@ all: pbmtojbg jbgtopbm pbmtojbg85 jbgtopbm85 txt
 txt: pbmtojbg.txt jbgtopbm.txt pbm.txt pgm.txt
 
 pbmtojbg: pbmtojbg.o ../libjbig/libjbig.a
-	$(CC) $(CFLAGS) -o pbmtojbg pbmtojbg.o -L../libjbig -ljbig
+	$(CC) $(CFLAGS) $(LDFLAGS) -o pbmtojbg$(EXEEXT) pbmtojbg.o -L../libjbig -ljbig
 
 jbgtopbm: jbgtopbm.o ../libjbig/libjbig.a
-	$(CC) $(CFLAGS) -o jbgtopbm jbgtopbm.o -L../libjbig -ljbig
+	$(CC) $(CFLAGS) $(LDFLAGS) -o jbgtopbm$(EXEEXT) jbgtopbm.o -L../libjbig -ljbig
 
 pbmtojbg85: pbmtojbg85.o ../libjbig/libjbig85.a
-	$(CC) $(CFLAGS) -o pbmtojbg85 pbmtojbg85.o -L../libjbig -ljbig85
+	$(CC) $(CFLAGS) $(LDFLAGS) -o pbmtojbg85$(EXEEXT) pbmtojbg85.o -L../libjbig -ljbig85
 
 jbgtopbm85: jbgtopbm85.o ../libjbig/libjbig85.a
-	$(CC) $(CFLAGS) -o jbgtopbm85 jbgtopbm85.o -L../libjbig -ljbig85
+	$(CC) $(CFLAGS) $(LDFLAGS) -o jbgtopbm85$(EXEEXT) jbgtopbm85.o -L../libjbig -ljbig85
 
 jbgtopbm.o: jbgtopbm.c ../libjbig/jbig.h
 pbmtojbg.o: pbmtojbg.c ../libjbig/jbig.h
@@ -161,6 +163,6 @@ fuzz: test-t82.pbm
 	groff -man -Tascii -P -c -P -b -P -u $< >$@
 
 clean:
-	rm -f *.o *~ core pbmtojbg jbgtopbm pbmtojbg85 jbgtopbm85
+	rm -f *.o *~ core pbmtojbg$(EXEEXT) jbgtopbm$(EXEEXT) pbmtojbg85$(EXEEXT) jbgtopbm85$(EXEEXT)
 	rm -f test-*.jbg test-*.pbm test-*.pgm test-*.jbg85 test-*.pbm85
 	rm -f *.gcda *.gcno *.plist
