@@ -4,17 +4,23 @@
 CC = gcc
 
 # Options for the compiler: A high optimization level is suggested
-CFLAGS = ${RPM_OPT_FLAGS} -W -Wall -ansi -pedantic -Zomf # --coverage
-LDFLAGS = -Zhigh-mem -Zomf -Zargs-wild -Zargs-resp -lcx
-EXEEXT = .exe
+CFLAGS = ${RPM_OPT_FLAGS} -W -Wall -ansi -pedantic # --coverage
+LDFLAGS ?= -Zhigh-mem -Zomf
+LIBS ?= -lcx
+JBIGLIBS = $(LIBS) -ljbig
+JBIG85LIBS = $(LIBS) -ljbig85
+EXEEXT ?= .exe
+VENDOR ?=community
+BUILD_INFO=\#\#1\#\# $(shell date +'%d %b %Y %H:%M:%S')     $(shell uname -n)
+BUILDLEVEL_INFO=@\#$(VENDOR):2.1.3\#@$(BUILD_INFO)::::0::
 
-all: libjbig.a libjbig85.a tstcodec tstcodec85
+all: libjbig.a libjbig85.a tstcodec$(EXEEXT) tstcodec85$(EXEEXT)
 
-tstcodec: tstcodec.o jbig.o jbig_ar.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -o tstcodec$(EXEEXT) tstcodec.o jbig.o jbig_ar.o
+tstcodec$(EXEEXT): tstcodec.o libjbig.a
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ tstcodec.o $(JBIGLIBS)
 
-tstcodec85: tstcodec85.o jbig85.o jbig_ar.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -o tstcodec85$(EXEEXT) tstcodec85.o jbig85.o jbig_ar.o
+tstcodec85$(EXEEXT): tstcodec85.o libjbig85.a
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ tstcodec85.o $(JBIG85LIBS)
 
 libjbig.a: jbig.o jbig_ar.o
 	rm -f libjbig.a
@@ -44,14 +50,15 @@ update-po: jbig.c jbig85.c Makefile
 analyze:
 	clang --analyze *.c
 
-test: tstcodec tstcodec85
+test: tstcodec$(EXEEXT) tstcodec85$(EXEEXT)
 	./tstcodec
 	./tstcodec85
 
-t82test.pbm: tstcodec
+t82test.pbm: tstcodec$(EXEEXT)
 	./tstcodec $@
 
 clean:
 	rm -f *.o *.gcda *.gcno *.gcov *.plist *~ core gmon.out dbg_d\=??.pbm
+	rm -f *.a
 	rm -f t82test.pbm
 	rm -f tstcodec${EXEEXT} tstcodec85${EXEEXT}

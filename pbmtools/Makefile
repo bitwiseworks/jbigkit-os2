@@ -5,28 +5,31 @@ CC = gcc
 
 # Options for the compiler
 CFLAGS = ${RPM_OPT_FLAGS} -W -Wall -Wno-unused-result -ansi -pedantic # --coverage
-LDFLAGS = -Zhigh-mem -Zomf -Zargs-wild -Zargs-resp -lcx
-EXEEXT = .exe
+LDFLAGS ?= -Zhigh-mem -Zomf
+LIBS ?= -lcx
+JBIGLIBS = $(LIBS) -jbig
+JBIG85LIBS = $(LIBS) -jbig85
+EXEEXT ?= .exe
 CPPFLAGS = -I../libjbig 
 
 .SUFFIXES: .1 .5 .txt $(SUFFIXES)
 .PHONY: txt test test82 test85 clean
 
-all: pbmtojbg jbgtopbm pbmtojbg85 jbgtopbm85 txt
+all: pbmtojbg$(EXEEXT) jbgtopbm$(EXEEXT) pbmtojbg85$(EXEEXT) jbgtopbm85$(EXEEXT) txt
 
 txt: pbmtojbg.txt jbgtopbm.txt pbm.txt pgm.txt
 
-pbmtojbg: pbmtojbg.o ../libjbig/libjbig.a
-	$(CC) $(CFLAGS) $(LDFLAGS) -o pbmtojbg$(EXEEXT) pbmtojbg.o -L../libjbig -ljbig
+pbmtojbg$(EXEEXT): pbmtojbg.o ../libjbig/libjbig.a
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ pbmtojbg.o -L../libjbig $(JBIGLIBS)
 
-jbgtopbm: jbgtopbm.o ../libjbig/libjbig.a
-	$(CC) $(CFLAGS) $(LDFLAGS) -o jbgtopbm$(EXEEXT) jbgtopbm.o -L../libjbig -ljbig
+jbgtopbm$(EXEEXT): jbgtopbm.o ../libjbig/libjbig.a
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ jbgtopbm.o -L../libjbig $(JBIGLIBS)
 
-pbmtojbg85: pbmtojbg85.o ../libjbig/libjbig85.a
-	$(CC) $(CFLAGS) $(LDFLAGS) -o pbmtojbg85$(EXEEXT) pbmtojbg85.o -L../libjbig -ljbig85
+pbmtojbg85$(EXEEXT): pbmtojbg85.o ../libjbig/libjbig85.a
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ pbmtojbg85.o -L../libjbig $(JBIG85LIBS)
 
-jbgtopbm85: jbgtopbm85.o ../libjbig/libjbig85.a
-	$(CC) $(CFLAGS) $(LDFLAGS) -o jbgtopbm85$(EXEEXT) jbgtopbm85.o -L../libjbig -ljbig85
+jbgtopbm85$(EXEEXT): jbgtopbm85.o ../libjbig/libjbig85.a
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ jbgtopbm85.o -L../libjbig $(JBIG85LIBS)
 
 jbgtopbm.o: jbgtopbm.c ../libjbig/jbig.h
 pbmtojbg.o: pbmtojbg.c ../libjbig/jbig.h
@@ -46,7 +49,7 @@ analyze:
 
 test: test82 test85
 
-test82: pbmtojbg jbgtopbm
+test82: pbmtojbg$(EXEEXT) jbgtopbm$(EXEEXT)
 	make IMG=ccitt1     OPTIONSP=                      dotest1
 	make IMG=ccitt2     OPTIONSP=                      dotest1
 	make IMG=ccitt3     OPTIONSP=                      dotest1
@@ -97,7 +100,7 @@ dotest2g:
 	./jbgtopbm $(OPTIONSJ) test-$(IMG).jbg test-$(IMG).pgm
 	cmp test-$(IMG).pgm ../examples/$(IMG).pgm
 
-test85: pbmtojbg jbgtopbm pbmtojbg85 jbgtopbm85 test-t82.pbm
+test85: pbmtojbg$(EXEEXT) jbgtopbm$(EXEEXT) pbmtojbg85$(EXEEXT) jbgtopbm85$(EXEEXT) test-t82.pbm
 	make IMG=t82 "OPTIONSP=-p 0"      dotest85
 	make IMG=t82 "OPTIONSP=-p 8"      dotest85
 	make IMG=t82 "OPTIONSP=-p 8 -r"   dotest85b
