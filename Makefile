@@ -10,6 +10,7 @@ CFLAGS = ${RPM_OPT_FLAGS} -W -Wno-unused-result
 export CC CFLAGS
 
 VERSION=2.1
+export VERSION
 
 all: lib pbm
 	@echo "Enter 'make test' in order to start some automatic tests."

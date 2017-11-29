@@ -7,8 +7,8 @@ CC = gcc
 CFLAGS = ${RPM_OPT_FLAGS} -W -Wall -Wno-unused-result -ansi -pedantic # --coverage
 LDFLAGS ?= -Zhigh-mem -Zomf
 LIBS ?= -lcx
-JBIGLIBS = $(LIBS) -jbig
-JBIG85LIBS = $(LIBS) -jbig85
+JBIGLIBS = $(LIBS) -ljbig
+JBIG85LIBS = $(LIBS) -ljbig85
 EXEEXT ?= .exe
 CPPFLAGS = -I../libjbig 
 
@@ -152,7 +152,7 @@ test-%.pbm: ../examples/%.jbg
 	./jbgtopbm $< $@
 
 test-t82.pbm:
-	make -C ../libjbig tstcodec
+	make -C ../libjbig tstcodec$(EXEEXT)
 	../libjbig/tstcodec $@
 
 FOPT=-c 1000 -p 300000 -m 3

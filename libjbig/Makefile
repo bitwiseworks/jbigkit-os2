@@ -10,11 +10,15 @@ LIBS ?= -lcx
 JBIGLIBS = $(LIBS) -ljbig
 JBIG85LIBS = $(LIBS) -ljbig85
 EXEEXT ?= .exe
+JBIGDEF = jbig.def
+JBIG85DEF = jbig85.def
+LIBJBIG = jbig.dll
+LIBJBIG85 = jbig85.dll
 VENDOR ?=community
 BUILD_INFO=\#\#1\#\# $(shell date +'%d %b %Y %H:%M:%S')     $(shell uname -n)
-BUILDLEVEL_INFO=@\#$(VENDOR):2.1.3\#@$(BUILD_INFO)::::0::
+BUILDLEVEL_INFO=@\#$(VENDOR):$(VERSION)\#@$(BUILD_INFO)::::0::
 
-all: libjbig.a libjbig85.a tstcodec$(EXEEXT) tstcodec85$(EXEEXT)
+all: $(LIBJBIG) $(LIBJBIG85) libjbig.a libjbig85.a tstcodec$(EXEEXT) tstcodec85$(EXEEXT)
 
 tstcodec$(EXEEXT): tstcodec.o libjbig.a
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ tstcodec.o $(JBIGLIBS)
@@ -22,15 +26,41 @@ tstcodec$(EXEEXT): tstcodec.o libjbig.a
 tstcodec85$(EXEEXT): tstcodec85.o libjbig85.a
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ tstcodec85.o $(JBIG85LIBS)
 
-libjbig.a: jbig.o jbig_ar.o
+libjbig.a: jbig.o jbig_ar.o $(JBIGDEF)
 	rm -f libjbig.a
-	ar rc libjbig.a jbig.o jbig_ar.o
-	-ranlib libjbig.a
+#	ar rc libjbig.a jbig.o jbig_ar.o
+#	-ranlib libjbig.a
+	emximp -o $@ $(LIBJBIG)
 
-libjbig85.a: jbig85.o jbig_ar.o
+libjbig85.a: jbig85.o jbig_ar.o $(JBIG85DEF)
 	rm -f libjbig85.a
-	ar rc libjbig85.a jbig85.o jbig_ar.o
-	-ranlib libjbig85.a
+#	ar rc libjbig85.a jbig85.o jbig_ar.o
+#	-ranlib libjbig85.a
+	emximp -o $@ $(LIBJBIG85)
+
+$(LIBJBIG): jbig.o jbig_ar.o $(JBIGDEF)
+	echo Linking $@...
+	$(CC) -Zdll $(LDFLAGS) -o $@ jbig.o jbig_ar.o $(JBIGDEF) $(LIBS)
+
+$(LIBJBIG85): jbig85.o jbig_ar.o $(JBIG85DEF)
+	echo Linking $@...
+	$(CC) -Zdll $(LDFLAGS) -o $@ jbig85.o jbig_ar.o $(JBIG85DEF) $(LIBS)
+
+$(JBIGDEF):
+	echo Creating $@...
+	echo "LIBRARY jbig INITINSTANCE TERMINSTANCE" > $@
+	echo "DESCRIPTION \"$(BUILDLEVEL_INFO)@@jbig\"" >> $@
+	echo "DATA MULTIPLE" >> $@
+	echo "EXPORTS" >> $@
+	emxexp jbig.o jbig_ar.o >> $@
+
+$(JBIG85DEF):
+	echo Creating $@...
+	echo "LIBRARY jbig85 INITINSTANCE TERMINSTANCE" > $@
+	echo "DESCRIPTION \"$(BUILDLEVEL_INFO)@@jbib85\"" >> $@
+	echo "DATA MULTIPLE" >> $@
+	echo "EXPORTS" >> $@
+	emxexp jbig85.o jbig_ar.o >> $@
 
 jbig.o: jbig.c jbig.h jbig_ar.h
 jbig85.o: jbig85.c jbig85.h jbig_ar.h
@@ -59,6 +89,6 @@ t82test.pbm: tstcodec$(EXEEXT)
 
 clean:
 	rm -f *.o *.gcda *.gcno *.gcov *.plist *~ core gmon.out dbg_d\=??.pbm
-	rm -f *.a
+	rm -f *.a $(JBIGDEF) $(JBIG85DEF) $(LIBJBIG) $(LIBJBIG85)
 	rm -f t82test.pbm
 	rm -f tstcodec${EXEEXT} tstcodec85${EXEEXT}
