@@ -2,3 +2,5 @@
 *.exe
 *.o
 *.pbm85
+*.def
+*.dll
